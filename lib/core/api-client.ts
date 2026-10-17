@@ -1,4 +1,6 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
+import { API_URL } from "@/lib/config";
+
+const BASE_URL = API_URL;
 
 type HttpMethod = "GET" | "POST" | "DELETE";
 
