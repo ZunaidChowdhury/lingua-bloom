@@ -215,6 +215,56 @@
   --level-accent-foreground: #101a17;
 }
 
+/* LoadingGarden animation (static grown state under prefers-reduced-motion) */
+@keyframes garden-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes garden-pop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.garden-stem {
+  transform-origin: 48px 66px;
+  animation: garden-grow 0.9s ease-out both;
+}
+
+.garden-leaf-left {
+  transform-origin: 48px 50px;
+  animation: garden-pop 0.45s ease-out 0.55s both;
+}
+
+.garden-leaf-right {
+  transform-origin: 48px 44px;
+  animation: garden-pop 0.45s ease-out 0.75s both;
+}
+
+.garden-bud {
+  transform-origin: 48px 28px;
+  animation: garden-pop 0.4s ease-out 1.05s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-stem,
+  .garden-leaf-left,
+  .garden-leaf-right,
+  .garden-bud {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
