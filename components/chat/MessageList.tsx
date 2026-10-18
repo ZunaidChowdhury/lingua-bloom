@@ -29,12 +29,10 @@ export function MessageList({
   return (
     <div
       className="flex flex-1 flex-col overflow-y-auto px-1 py-2"
+      role="log"
       aria-label="Conversation with Bloom"
     >
-      <ul
-        aria-live="polite"
-        className="flex flex-col gap-3"
-      >
+      <ul className="flex flex-col gap-3">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}

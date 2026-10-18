@@ -19,9 +19,17 @@ export function LevelUpCelebration({
   onDismiss: () => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
     buttonRef.current?.focus();
+    return () => {
+      previousFocusRef.current?.focus();
+    };
   }, []);
 
   useEffect(() => {
@@ -39,6 +47,12 @@ export function LevelUpCelebration({
       role="dialog"
       aria-modal="true"
       aria-label={`You grew to Level ${level}`}
+      onKeyDown={(event) => {
+        if (event.key === "Tab") {
+          event.preventDefault();
+          buttonRef.current?.focus();
+        }
+      }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4"
     >
       {DECORATIONS.map((decoration, index) => (
