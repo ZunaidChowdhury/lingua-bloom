@@ -210,3 +210,12 @@ GitHub: [@ZunaidChowdhury](https://github.com/ZunaidChowdhury)
 ## ⭐ Star the Project
 
 If you love LinguaBloom and want to support gentle, child-first AI learning, please consider starring this repository! 🌟
+
+---
+
+## 📸 Preview
+
+<div align="center">
+  <img src="./lingua-bloom-chat.png" width="100%" alt="LinguaBloom Chat Interface" />
+</div>
+
