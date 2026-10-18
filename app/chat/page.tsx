@@ -58,7 +58,7 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
       <h1 className="text-xl font-semibold">Chat with Bloom</h1>
 
       <ul className="flex flex-1 flex-col gap-2" aria-live="polite">
@@ -103,6 +103,6 @@ export default function ChatPage() {
           {sending ? "Sending" : "Send"}
         </button>
       </form>
-    </main>
+    </div>
   );
 }
