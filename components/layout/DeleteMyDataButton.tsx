@@ -19,7 +19,11 @@ import { deleteSession } from "@/lib/actions/deleteSession";
 import { ApiError, NotFoundError, UnauthorizedError } from "@/lib/core/errors";
 import { clearToken, getToken } from "@/lib/session/token";
 
-export function DeleteMyDataButton() {
+export function DeleteMyDataButton({
+  fullLabel = false,
+}: {
+  fullLabel?: boolean;
+} = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,12 +71,22 @@ export function DeleteMyDataButton() {
           <Button
             variant="ghost"
             size="sm"
-            className="group inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border/70 bg-card/60 px-3 text-xs font-semibold text-muted-foreground shadow-2xs transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive active:scale-95"
+            aria-label="Delete my data"
+            className={
+              fullLabel
+                ? "cursor-pointer group inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border/70 bg-card/60 px-3 text-xs font-semibold text-muted-foreground shadow-2xs transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive active:scale-95"
+                : "cursor-pointer group inline-flex size-9 min-[867px]:size-auto min-[867px]:min-h-9 items-center justify-center gap-1.5 rounded-full border border-border/70 bg-card/60 p-0 min-[867px]:px-3 text-xs font-semibold text-muted-foreground shadow-2xs transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive active:scale-95"
+            }
           />
         }
       >
-        <Trash2 className="size-3.5 transition-transform group-hover:scale-110 motion-reduce:group-hover:scale-100" />
-        <span>Delete my data</span>
+        <Trash2 className="size-4 min-[867px]:size-3.5 transition-transform group-hover:scale-110 motion-reduce:group-hover:scale-100" />
+        <span className={fullLabel ? "inline" : "hidden min-[867px]:inline"}>
+          Delete my data
+        </span>
+        {!fullLabel ? (
+          <span className="sr-only min-[867px]:hidden">Delete my data</span>
+        ) : null}
       </DialogTrigger>
       <DialogContent className="max-w-md rounded-3xl border-2 border-border/80 p-6 shadow-xl">
         <DialogHeader className="gap-3">
@@ -105,7 +119,7 @@ export function DeleteMyDataButton() {
               <Button
                 variant="outline"
                 disabled={deleting}
-                className="min-h-11 rounded-full px-5 text-sm font-semibold"
+                className="cursor-pointer min-h-11 rounded-full px-5 text-sm font-semibold"
               />
             }
           >
@@ -115,7 +129,7 @@ export function DeleteMyDataButton() {
             variant="destructive"
             onClick={() => void handleConfirm()}
             disabled={deleting}
-            className="min-h-11 rounded-full px-6 text-sm font-bold shadow-md hover:shadow-lg active:scale-95 motion-reduce:hover:scale-100"
+            className="cursor-pointer min-h-11 rounded-full px-6 text-sm font-bold shadow-md hover:shadow-lg active:scale-95 motion-reduce:hover:scale-100"
           >
             {deleting ? "Deleting…" : "Yes, delete everything"}
           </Button>

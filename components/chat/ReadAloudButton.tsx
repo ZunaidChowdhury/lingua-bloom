@@ -54,10 +54,10 @@ export function ReadAloudButton({ text }: { text: string }) {
       onClick={handleClick}
       aria-label={speaking ? "Stop reading aloud" : "Read aloud"}
       aria-pressed={speaking}
-      className={`inline-flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+      className={`cursor-pointer inline-flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-full border transition-all hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
         speaking
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-card text-muted-foreground hover:text-foreground"
+          ? "border-primary bg-primary text-primary-foreground shadow-xs"
+          : "border-border/80 bg-card/80 text-muted-foreground hover:bg-muted hover:text-foreground"
       }`}
     >
       {speaking ? (

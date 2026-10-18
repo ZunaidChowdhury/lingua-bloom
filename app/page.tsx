@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { AnimatedHeroTitle } from "@/components/marketing/AnimatedHeroTitle";
 import { BotanicalHero } from "@/components/marketing/BotanicalHero";
 import { useWarmup } from "@/hooks/useWarmup";
 
@@ -57,17 +58,14 @@ export default function Home() {
     <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-14 px-4 py-8 sm:py-12">
       {/* Hero Section */}
       <section className="flex flex-col items-center gap-6 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-mint/50 px-4 py-1.5 text-xs sm:text-sm font-semibold text-primary shadow-xs">
-          <span>🌱</span>
-          <span>Gentle English Learning for Children Under 7</span>
+        <div className="inline-flex items-center rounded-full border border-primary/30 bg-mint/50 dark:bg-mint/20 px-4 py-1.5 text-xs sm:text-sm font-semibold text-primary shadow-xs">
+          <span>AI-Powered English Learning Chatbot</span>
         </div>
 
         <BotanicalHero className="w-full max-w-sm" />
 
         <div className="flex flex-col items-center gap-3">
-          <h1 className="font-heading text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Little words. Big worlds.
-          </h1>
+          <AnimatedHeroTitle />
           <p className="max-w-lg text-lg text-muted-foreground sm:text-xl">
             A gentle English-learning friend who listens, plays, and celebrates every little step — one word at a time.
           </p>

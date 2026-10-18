@@ -28,7 +28,7 @@ export function Composer({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-1 border-t-2 border-border/70 bg-background/95 pt-3 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur-xs"
+      className="flex flex-col gap-1 w-full"
     >
       <div className="flex items-center gap-2">
         <label htmlFor="chat-input" className="sr-only">
@@ -42,13 +42,13 @@ export function Composer({
           maxLength={MAX_LENGTH}
           autoComplete="off"
           enterKeyHint="send"
-          placeholder="Talk to Bloom (e.g. 'hello', 'lets learn')…"
-          className="min-h-14 flex-1 rounded-full border-2 border-border/80 bg-card px-5 text-base font-medium text-foreground placeholder:text-muted-foreground shadow-xs focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          placeholder="Talk to Bloom (e.g. 'hello', 'quiz me')…"
+          className="min-h-12 sm:min-h-13.5 flex-1 rounded-full border-2 border-primary/25 bg-[#F4FAF6] dark:bg-[#122019] px-4 sm:px-5 text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground/75 shadow-xs focus-visible:border-primary focus-visible:bg-white dark:focus-visible:bg-[#182821] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-all"
         />
         <button
           type="submit"
           disabled={pending || trimmed.length === 0}
-          className="inline-flex min-h-14 items-center justify-center gap-1.5 rounded-full bg-primary px-6 font-heading font-bold text-primary-foreground shadow-md transition-all hover:scale-102 hover:shadow-lg active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:hover:scale-100"
+          className="cursor-pointer inline-flex min-h-12 sm:min-h-13.5 items-center justify-center gap-1.5 rounded-full bg-primary px-5 sm:px-6 font-heading text-sm sm:text-base font-bold text-white dark:text-[#0C1B14] shadow-md transition-all hover:bg-primary/90 hover:scale-102 hover:shadow-lg active:scale-95 disabled:pointer-events-none disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:hover:scale-100"
         >
           {pending ? (
             <span>…</span>

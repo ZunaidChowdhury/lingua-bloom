@@ -17,13 +17,37 @@ export function Footer() {
           LinguaBloom — Little words. Big worlds. 🌸 Made with care for young learners.
         </p>
         <nav aria-label="Footer">
-          <ul className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <li>
+              <Link
+                href="/"
+                className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/start"
+                className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                Learn
+              </Link>
+            </li>
             <li>
               <Link
                 href="/grown-ups"
                 className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
-                For grown-ups
+                Safety
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/how-it-works"
+                className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                How it works
               </Link>
             </li>
           </ul>

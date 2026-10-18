@@ -38,7 +38,7 @@ export function ChoiceGrid({
             type="button"
             disabled={disabled}
             onClick={() => onSelect(choice.id)}
-            className="group flex min-h-16 items-center gap-3.5 rounded-3xl border-2 border-border/80 bg-card p-3.5 text-left font-semibold text-foreground shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md active:translate-y-0 active:scale-98 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:hover:translate-y-0"
+            className="cursor-pointer group flex min-h-14 sm:min-h-16 items-center gap-3.5 rounded-2xl sm:rounded-3xl border-2 border-primary/25 dark:border-primary/35 bg-white dark:bg-[#1E332A] p-3 sm:p-3.5 text-left font-semibold text-foreground shadow-xs transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-md active:translate-y-0 active:scale-98 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:hover:translate-y-0"
           >
             <span
               className={`flex size-8 shrink-0 items-center justify-center rounded-2xl text-xs font-bold transition-transform group-hover:scale-110 motion-reduce:group-hover:scale-100 ${badge.bg}`}

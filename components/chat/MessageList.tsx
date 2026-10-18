@@ -28,17 +28,17 @@ export function MessageList({
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col overflow-y-auto px-1 py-2"
+      className="chat-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto px-3 sm:px-6 py-4 scroll-smooth overscroll-contain"
       role="log"
       aria-label="Conversation with Bloom"
     >
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-3.5">
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
       </ul>
       {typing ? (
-        <div className="flex items-end justify-start pt-3 pl-11">
+        <div className="flex items-end justify-start pt-3 pl-11 sm:pl-12">
           <TypingIndicator />
         </div>
       ) : null}
