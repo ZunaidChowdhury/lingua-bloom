@@ -11,43 +11,14 @@ import { ModeChip } from "@/components/chat/ModeChip";
 import { ProgressPlant } from "@/components/chat/ProgressPlant";
 import { DataLoadFailed } from "@/components/feedback/DataLoadFailed";
 import { LoadingGarden } from "@/components/feedback/LoadingGarden";
+import { WakingUp } from "@/components/feedback/WakingUp";
+import { childMessage, isBusy, useChat } from "@/hooks/useChat";
 import { getSession } from "@/lib/api/getSession";
-import { sendTurn } from "@/lib/actions/sendTurn";
 import { ApiError } from "@/lib/core/errors";
 import { clearToken } from "@/lib/session/token";
-import type {
-  ActivityPayload,
-  GetSessionResponse,
-  Message,
-  Mode,
-  Progress,
-  Session,
-  TurnInput,
-  TurnResponse,
-} from "@/lib/types";
+import type { ActivityPayload, Message, Session } from "@/lib/types";
 
-type ChatState =
-  | { status: "loading" }
-  | { status: "error" }
-  | {
-      status: "ready";
-      session: Session;
-      messages: Message[];
-      activity: ActivityPayload | null;
-      progress: Progress;
-      mode: Mode | null;
-      typing: boolean;
-    };
-
-function lastMode(messages: Message[]): Mode | null {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const mode = messages[index].mode;
-    if (mode !== null) {
-      return mode;
-    }
-  }
-  return null;
-}
+type Phase = "loading" | "error" | "ready";
 
 function activityChoices(
   activity: ActivityPayload | null,
@@ -68,99 +39,79 @@ function activityChoices(
   return null;
 }
 
+function lastMode(messages: Message[]) {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const mode = messages[index].mode;
+    if (mode !== null) {
+      return mode;
+    }
+  }
+  return null;
+}
+
 export default function ChatPage() {
   const router = useRouter();
-  const [state, setState] = useState<ChatState>({ status: "loading" });
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [session, setSession] = useState<Session | null>(null);
   const [draft, setDraft] = useState("");
-  const [pending, setPending] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
 
-  const applySession = useCallback((data: GetSessionResponse) => {
-    setState({
-      status: "ready",
-      session: data.session,
-      messages: data.messages,
-      activity: data.activity,
-      progress: data.progress,
-      mode: lastMode(data.messages),
-      typing: false,
-    });
-  }, []);
+  const handleUnauthorized = useCallback(() => {
+    clearToken();
+    router.replace("/start");
+  }, [router]);
 
-  const handleFailure = useCallback(
-    (error: unknown) => {
+  const { state, send, hydrate, dismissLevelUp } = useChat(handleUnauthorized);
+
+  const load = useCallback(async () => {
+    try {
+      const data = await getSession();
+      setSession(data.session);
+      hydrate({
+        messages: data.messages,
+        activity: data.activity,
+        progress: data.progress,
+        mode: lastMode(data.messages),
+      });
+      setPhase("ready");
+    } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        clearToken();
-        router.replace("/start");
+        handleUnauthorized();
         return;
       }
-      setState({ status: "error" });
-    },
-    [router],
-  );
+      setPhase("error");
+    }
+  }, [hydrate, handleUnauthorized]);
 
   useEffect(() => {
     let cancelled = false;
     getSession()
       .then((data) => {
-        if (!cancelled) {
-          applySession(data);
+        if (cancelled) {
+          return;
         }
+        setSession(data.session);
+        hydrate({
+          messages: data.messages,
+          activity: data.activity,
+          progress: data.progress,
+          mode: lastMode(data.messages),
+        });
+        setPhase("ready");
       })
       .catch((error: unknown) => {
-        if (!cancelled) {
-          handleFailure(error);
+        if (cancelled) {
+          return;
         }
+        if (error instanceof ApiError && error.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+        setPhase("error");
       });
     return () => {
       cancelled = true;
     };
-  }, [applySession, handleFailure]);
-
-  const retry = useCallback(() => {
-    setState({ status: "loading" });
-    getSession().then(applySession).catch(handleFailure);
-  }, [applySession, handleFailure]);
-
-  const submitTurn = useCallback(
-    async (input: TurnInput) => {
-      if (state.status !== "ready" || pending) {
-        return;
-      }
-      setPending(true);
-      setSendError(null);
-      setState({ ...state, typing: true });
-      try {
-        const response: TurnResponse = await sendTurn(input);
-        setState((current) => {
-          if (current.status !== "ready") {
-            return current;
-          }
-          return {
-            ...current,
-            messages: [...current.messages, ...response.messages],
-            activity: response.activity,
-            progress: response.progress,
-            mode: response.mode,
-            typing: false,
-          };
-        });
-      } catch (error) {
-        if (error instanceof ApiError && error.status === 401) {
-          clearToken();
-          router.replace("/start");
-          return;
-        }
-        setState((current) =>
-          current.status === "ready" ? { ...current, typing: false } : current,
-        );
-        setSendError("I could not hear that. Please try again.");
-      } finally {
-        setPending(false);
-      }
-    },
-    [pending, router, state],
-  );
+  }, [hydrate, handleUnauthorized]);
 
   function handleSend() {
     const trimmed = draft.trim();
@@ -168,14 +119,17 @@ export default function ChatPage() {
       return;
     }
     setDraft("");
-    void submitTurn({ text: trimmed });
+    void send({ text: trimmed }, childMessage(trimmed));
   }
 
   function handleChoice(choiceId: string) {
-    void submitTurn({ choice_id: choiceId });
+    const choice = activityChoices(state.activity)?.find(
+      (item) => item.id === choiceId,
+    );
+    void send({ choice_id: choiceId }, childMessage(choice?.label ?? choiceId));
   }
 
-  if (state.status === "loading") {
+  if (phase === "loading") {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-6">
         <LoadingGarden />
@@ -183,48 +137,80 @@ export default function ChatPage() {
     );
   }
 
-  if (state.status === "error") {
+  if (phase === "error") {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-6">
-        <DataLoadFailed onRetry={retry} />
+        <DataLoadFailed onRetry={() => void load()} />
       </div>
     );
   }
 
-  const choices = pending ? null : activityChoices(state.activity);
+  const pending = isBusy(state.status);
+  const rateLimited = state.status === "error" && state.retryAfter !== null;
+  const sendDisabled = pending || rateLimited;
+  const choices =
+    state.status === "idle" ? activityChoices(state.activity) : null;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-1 flex-col px-4 py-4">
       <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
         <h1 className="font-heading text-lg font-bold text-foreground">
           Chat with Bloom
-          {state.session.nickname ? ` — hi, ${state.session.nickname}!` : ""}
+          {session?.nickname ? ` — hi, ${session.nickname}!` : ""}
         </h1>
         {state.mode ? <ModeChip mode={state.mode} /> : null}
         <LevelBadge level={state.progress.level} />
         <ProgressPlant progress={state.progress} />
       </div>
-      <MessageList messages={state.messages} typing={state.typing} />
+
+      {state.status === "levelUp" ? (
+        <div
+          role="status"
+          className="mt-3 flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-border bg-secondary px-4 py-3"
+        >
+          <p className="font-heading font-bold text-foreground">
+            🌟 You grew to Level {state.progress.level}!
+          </p>
+          <button
+            type="button"
+            onClick={dismissLevelUp}
+            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            Keep going
+          </button>
+        </div>
+      ) : null}
+
+      <MessageList messages={state.messages} typing={pending} />
+
       {choices && choices.length > 0 ? (
         <div className="border-t border-border py-3">
           <ChoiceGrid
             choices={choices}
             onSelect={handleChoice}
-            disabled={pending}
+            disabled={sendDisabled}
             label="Pick an answer"
           />
         </div>
       ) : null}
-      {sendError ? (
+
+      {state.status === "waking" ? (
+        <div className="border-t border-border pt-3">
+          <WakingUp />
+        </div>
+      ) : null}
+
+      {state.sendError ? (
         <p role="alert" className="pb-2 text-sm text-destructive">
-          {sendError}
+          {state.sendError}
         </p>
       ) : null}
+
       <Composer
         value={draft}
         onChange={setDraft}
         onSend={handleSend}
-        pending={pending}
+        pending={sendDisabled}
       />
     </div>
   );
