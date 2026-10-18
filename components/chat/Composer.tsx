@@ -28,7 +28,7 @@ export function Composer({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-1 border-t border-border bg-background pt-3"
+      className="flex flex-col gap-1 border-t border-border bg-background pt-3 pb-[max(0.25rem,env(safe-area-inset-bottom))]"
     >
       <div className="flex items-center gap-2">
         <label htmlFor="chat-input" className="sr-only">
