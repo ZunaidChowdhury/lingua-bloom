@@ -14,7 +14,10 @@ function botMessage(id: number, content: string): Message {
 
 function turnResponse(overrides: Partial<TurnResponse> = {}): TurnResponse {
   return {
-    messages: [botMessage(1, "Nice try!")],
+    messages: [
+      { id: 1, role: "child", content: "hello", mode: null },
+      botMessage(2, "Nice try!"),
+    ],
     mode: "learning",
     level: 2,
     level_up: null,
@@ -113,7 +116,7 @@ describe("chatReducer", () => {
     expect(chatReducer(before, { type: "wake" })).toBe(before);
   });
 
-  it("receive from sending appends messages and updates mode, level, progress", () => {
+  it("receive from sending replaces optimistic message with server messages", () => {
     const response = turnResponse();
     const state = chatReducer(sendingState(), {
       type: "receive",
@@ -121,6 +124,9 @@ describe("chatReducer", () => {
     });
     expect(state.status).toBe("idle");
     expect(state.messages).toHaveLength(2);
+    expect(
+      state.messages.filter((m) => m.role === "child"),
+    ).toHaveLength(1);
     expect(state.mode).toBe("learning");
     expect(state.progress.level).toBe(2);
     expect(state.progress.correct_in_window).toBe(3);

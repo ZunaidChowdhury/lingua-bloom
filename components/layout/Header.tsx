@@ -1,3 +1,4 @@
+import { DeleteMyDataButton } from "@/components/layout/DeleteMyDataButton";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export function Header() {
@@ -12,7 +13,10 @@ export function Header() {
             Little words. Big worlds.
           </span>
         </div>
-        <ThemeToggle />
+        <div className="flex shrink-0 items-center gap-2">
+          <DeleteMyDataButton />
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
