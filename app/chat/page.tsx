@@ -1,108 +1,223 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { apiMutate } from "@/lib/core/api-client";
+import { ChoiceGrid } from "@/components/chat/ChoiceGrid";
+import { Composer } from "@/components/chat/Composer";
+import { LevelBadge } from "@/components/chat/LevelBadge";
+import { LevelUpCelebration } from "@/components/chat/LevelUpCelebration";
+import { MessageList } from "@/components/chat/MessageList";
+import { ModeChip } from "@/components/chat/ModeChip";
+import { ProgressPlant } from "@/components/chat/ProgressPlant";
+import { DataLoadFailed } from "@/components/feedback/DataLoadFailed";
+import { LoadingGarden } from "@/components/feedback/LoadingGarden";
+import { WakingUp } from "@/components/feedback/WakingUp";
+import { childMessage, isBusy, useChat } from "@/hooks/useChat";
+import { getSession } from "@/lib/api/getSession";
+import { ApiError } from "@/lib/core/errors";
+import { clearToken } from "@/lib/session/token";
+import type { ActivityPayload, Message, Session } from "@/lib/types";
 
-type ChatRole = "child" | "bot";
+type Phase = "loading" | "error" | "ready";
 
-type ChatMessage = {
-  role: ChatRole;
-  content: string;
-};
+function activityChoices(
+  activity: ActivityPayload | null,
+): { id: string; label: string; emoji: string | null }[] | null {
+  if (!activity) {
+    return null;
+  }
+  if (activity.type === "feeling_checkin") {
+    return activity.choices.map((choice) => ({
+      id: choice.id,
+      label: choice.label,
+      emoji: choice.emoji,
+    }));
+  }
+  if (activity.type === "choice") {
+    return activity.choices;
+  }
+  return null;
+}
 
-type SliceTurnResponse = {
-  messages: { role: "bot"; content: string }[];
-  meta: { llm_ms: number; total_ms: number; fallback: boolean };
-};
-
-const GREETING: ChatMessage = {
-  role: "bot",
-  content: "Hi! I am Bloom. What would you like to talk about?",
-};
-
-export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSend(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = text.trim();
-    if (!trimmed || sending) {
-      return;
-    }
-
-    setMessages((current) => [...current, { role: "child", content: trimmed }]);
-    setText("");
-    setSending(true);
-    setError(null);
-
-    try {
-      const data = await apiMutate<SliceTurnResponse>(
-        "POST",
-        "/v1/chat/turns",
-        { text: trimmed },
-      );
-      const replies: ChatMessage[] = data.messages.map((message) => ({
-        role: "bot",
-        content: message.content,
-      }));
-      setMessages((current) => [...current, ...replies]);
-    } catch {
-      setError("I could not hear that. Please try again.");
-    } finally {
-      setSending(false);
+function lastMode(messages: Message[]) {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const mode = messages[index].mode;
+    if (mode !== null) {
+      return mode;
     }
   }
+  return null;
+}
+
+export default function ChatPage() {
+  const router = useRouter();
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [session, setSession] = useState<Session | null>(null);
+  const [draft, setDraft] = useState("");
+
+  const handleUnauthorized = useCallback(() => {
+    clearToken();
+    router.replace("/start");
+  }, [router]);
+
+  const { state, send, hydrate, dismissLevelUp } = useChat(handleUnauthorized);
+
+  const load = useCallback(async () => {
+    try {
+      const data = await getSession();
+      setSession(data.session);
+      hydrate({
+        messages: data.messages,
+        activity: data.activity,
+        progress: data.progress,
+        mode: lastMode(data.messages),
+      });
+      setPhase("ready");
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+      setPhase("error");
+    }
+  }, [hydrate, handleUnauthorized]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getSession()
+      .then((data) => {
+        if (cancelled) {
+          return;
+        }
+        setSession(data.session);
+        hydrate({
+          messages: data.messages,
+          activity: data.activity,
+          progress: data.progress,
+          mode: lastMode(data.messages),
+        });
+        setPhase("ready");
+      })
+      .catch((error: unknown) => {
+        if (cancelled) {
+          return;
+        }
+        if (error instanceof ApiError && error.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+        setPhase("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrate, handleUnauthorized]);
+
+  function handleSend() {
+    const trimmed = draft.trim();
+    if (trimmed.length === 0) {
+      return;
+    }
+    setDraft("");
+    void send({ text: trimmed }, childMessage(trimmed));
+  }
+
+  function handleChoice(choiceId: string) {
+    if (state.activity?.type === "feeling_checkin") {
+      const feeling = state.activity.choices.find(
+        (item) => item.id === choiceId,
+      );
+      void send(
+        { feeling: choiceId },
+        childMessage(feeling?.label ?? choiceId),
+      );
+      return;
+    }
+    const choice = activityChoices(state.activity)?.find(
+      (item) => item.id === choiceId,
+    );
+    void send({ choice_id: choiceId }, childMessage(choice?.label ?? choiceId));
+  }
+
+  if (phase === "loading") {
+    return (
+      <div className="flex h-[calc(100dvh-4.5rem)] flex-col items-center justify-center p-6">
+        <LoadingGarden />
+      </div>
+    );
+  }
+
+  if (phase === "error") {
+    return (
+      <div className="flex h-[calc(100dvh-4.5rem)] flex-col items-center justify-center p-6">
+        <DataLoadFailed onRetry={() => void load()} />
+      </div>
+    );
+  }
+
+  const pending = isBusy(state.status);
+  const rateLimited = state.status === "error" && state.retryAfter !== null;
+  const sendDisabled = pending || rateLimited;
+  const choices =
+    state.status === "idle" ? activityChoices(state.activity) : null;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-semibold">Chat with Bloom</h1>
+    <div className="mx-auto flex h-[calc(100dvh-4.5rem)] w-full max-w-xl flex-1 flex-col overflow-hidden px-4 py-4">
+      <div
+        className={`flex flex-wrap items-center justify-center gap-2 rounded-2xl border px-4 py-3 ${
+          state.mode === "support"
+            ? "border-lavender bg-lavender/30"
+            : "border-border bg-card"
+        }`}
+      >
+        <h1 className="font-heading text-lg font-bold text-foreground">
+          Chat with Bloom
+          {session?.nickname ? ` — hi, ${session.nickname}!` : ""}
+        </h1>
+        {state.mode ? <ModeChip mode={state.mode} /> : null}
+        <LevelBadge level={state.progress.level} />
+        <ProgressPlant progress={state.progress} />
+      </div>
 
-      <ul className="flex flex-1 flex-col gap-2" aria-live="polite">
-        {messages.map((message, index) => (
-          <li
-            key={index}
-            className={
-              message.role === "child"
-                ? "self-end rounded-2xl bg-sky-100 px-4 py-2"
-                : "self-start rounded-2xl bg-emerald-100 px-4 py-2"
-            }
-          >
-            {message.content}
-          </li>
-        ))}
-      </ul>
+      {state.status === "levelUp" ? (
+        <LevelUpCelebration
+          level={state.progress.level}
+          onDismiss={dismissLevelUp}
+        />
+      ) : null}
 
-      {error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {error}
+      <MessageList messages={state.messages} typing={pending} />
+
+      {choices && choices.length > 0 ? (
+        <div className="border-t border-border py-3">
+          <ChoiceGrid
+            choices={choices}
+            onSelect={handleChoice}
+            disabled={sendDisabled}
+            label="Pick an answer"
+          />
+        </div>
+      ) : null}
+
+      {state.status === "waking" ? (
+        <div className="border-t border-border pt-3">
+          <WakingUp />
+        </div>
+      ) : null}
+
+      {state.sendError ? (
+        <p role="alert" className="pb-2 text-sm text-destructive">
+          {state.sendError}
         </p>
       ) : null}
 
-      <form onSubmit={handleSend} className="flex gap-2">
-        <label htmlFor="chat-input" className="sr-only">
-          Your message
-        </label>
-        <input
-          id="chat-input"
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          maxLength={200}
-          autoComplete="off"
-          placeholder="Type a message"
-          className="flex-1 rounded-xl border px-4 py-3"
-        />
-        <button
-          type="submit"
-          disabled={sending || text.trim().length === 0}
-          className="min-h-11 rounded-xl bg-emerald-600 px-5 py-3 text-white disabled:opacity-50"
-        >
-          {sending ? "Sending" : "Send"}
-        </button>
-      </form>
-    </main>
+      <Composer
+        value={draft}
+        onChange={setDraft}
+        onSend={handleSend}
+        pending={sendDisabled}
+      />
+    </div>
   );
 }

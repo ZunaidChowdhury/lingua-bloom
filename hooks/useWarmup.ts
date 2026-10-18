@@ -2,14 +2,14 @@
 
 import { useEffect } from "react";
 
+import { API_URL } from "@/lib/config";
+
 export function useWarmup(): void {
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!baseUrl) {
-      return;
-    }
     const controller = new AbortController();
-    void fetch(`${baseUrl}/health`, { signal: controller.signal }).catch(() => undefined);
+    void fetch(`${API_URL}/health`, { signal: controller.signal }).catch(
+      () => undefined,
+    );
     return () => controller.abort();
   }, []);
 }
