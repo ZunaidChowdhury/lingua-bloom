@@ -8,6 +8,6 @@ export type SessionSummary = {
   turnCount: number;
 };
 
-export function getSession(token: string): Promise<SessionSummary> {
-  return apiGet<SessionSummary>("/v1/sessions/me", token);
+export function getSession(): Promise<SessionSummary> {
+  return apiGet<SessionSummary>("/v1/sessions/me");
 }

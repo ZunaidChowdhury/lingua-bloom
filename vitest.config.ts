@@ -6,6 +6,9 @@ export default defineConfig({
     environment: "node",
     include: ["**/*.test.ts"],
     exclude: ["node_modules", ".next"],
+    env: {
+      NEXT_PUBLIC_API_URL: "http://api.test",
+    },
   },
   resolve: {
     alias: {
