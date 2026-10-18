@@ -142,7 +142,7 @@ export default function ChatPage() {
 
   if (phase === "loading") {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-6">
+      <div className="flex h-[calc(100dvh-4.5rem)] flex-col items-center justify-center p-6">
         <LoadingGarden />
       </div>
     );
@@ -150,7 +150,7 @@ export default function ChatPage() {
 
   if (phase === "error") {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-6">
+      <div className="flex h-[calc(100dvh-4.5rem)] flex-col items-center justify-center p-6">
         <DataLoadFailed onRetry={() => void load()} />
       </div>
     );
@@ -163,7 +163,7 @@ export default function ChatPage() {
     state.status === "idle" ? activityChoices(state.activity) : null;
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-1 flex-col px-4 py-4">
+    <div className="mx-auto flex h-[calc(100dvh-4.5rem)] w-full max-w-xl flex-1 flex-col overflow-hidden px-4 py-4">
       <div
         className={`flex flex-wrap items-center justify-center gap-2 rounded-2xl border px-4 py-3 ${
           state.mode === "support"

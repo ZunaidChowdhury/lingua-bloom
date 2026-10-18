@@ -93,10 +93,11 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
         return state;
       }
       const levelUp = action.response.level_up === true;
+      const confirmed = state.messages.filter((m) => m.id >= 0);
       return {
         ...state,
         status: levelUp ? "levelUp" : "idle",
-        messages: [...state.messages, ...action.response.messages],
+        messages: [...confirmed, ...action.response.messages],
         activity: action.response.activity,
         progress: action.response.progress,
         mode: action.response.mode,
