@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ChoiceGrid } from "@/components/chat/ChoiceGrid";
 import { Composer } from "@/components/chat/Composer";
 import { LevelBadge } from "@/components/chat/LevelBadge";
+import { LevelUpCelebration } from "@/components/chat/LevelUpCelebration";
 import { MessageList } from "@/components/chat/MessageList";
 import { ModeChip } from "@/components/chat/ModeChip";
 import { ProgressPlant } from "@/components/chat/ProgressPlant";
@@ -123,6 +124,16 @@ export default function ChatPage() {
   }
 
   function handleChoice(choiceId: string) {
+    if (state.activity?.type === "feeling_checkin") {
+      const feeling = state.activity.choices.find(
+        (item) => item.id === choiceId,
+      );
+      void send(
+        { feeling: choiceId },
+        childMessage(feeling?.label ?? choiceId),
+      );
+      return;
+    }
     const choice = activityChoices(state.activity)?.find(
       (item) => item.id === choiceId,
     );
@@ -153,7 +164,13 @@ export default function ChatPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-1 flex-col px-4 py-4">
-      <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
+      <div
+        className={`flex flex-wrap items-center justify-center gap-2 rounded-2xl border px-4 py-3 ${
+          state.mode === "support"
+            ? "border-lavender bg-lavender/30"
+            : "border-border bg-card"
+        }`}
+      >
         <h1 className="font-heading text-lg font-bold text-foreground">
           Chat with Bloom
           {session?.nickname ? ` — hi, ${session.nickname}!` : ""}
@@ -164,21 +181,10 @@ export default function ChatPage() {
       </div>
 
       {state.status === "levelUp" ? (
-        <div
-          role="status"
-          className="mt-3 flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-border bg-secondary px-4 py-3"
-        >
-          <p className="font-heading font-bold text-foreground">
-            🌟 You grew to Level {state.progress.level}!
-          </p>
-          <button
-            type="button"
-            onClick={dismissLevelUp}
-            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            Keep going
-          </button>
-        </div>
+        <LevelUpCelebration
+          level={state.progress.level}
+          onDismiss={dismissLevelUp}
+        />
       ) : null}
 
       <MessageList messages={state.messages} typing={pending} />
