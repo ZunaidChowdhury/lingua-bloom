@@ -1,108 +1,107 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import { apiMutate } from "@/lib/core/api-client";
+import { MessageList } from "@/components/chat/MessageList";
+import { DataLoadFailed } from "@/components/feedback/DataLoadFailed";
+import { LoadingGarden } from "@/components/feedback/LoadingGarden";
+import { getSession } from "@/lib/api/getSession";
+import { ApiError } from "@/lib/core/errors";
+import { clearToken } from "@/lib/session/token";
+import type {
+  ActivityPayload,
+  GetSessionResponse,
+  Message,
+  Progress,
+  Session,
+} from "@/lib/types";
 
-type ChatRole = "child" | "bot";
-
-type ChatMessage = {
-  role: ChatRole;
-  content: string;
-};
-
-type SliceTurnResponse = {
-  messages: { role: "bot"; content: string }[];
-  meta: { llm_ms: number; total_ms: number; fallback: boolean };
-};
-
-const GREETING: ChatMessage = {
-  role: "bot",
-  content: "Hi! I am Bloom. What would you like to talk about?",
-};
+type ChatState =
+  | { status: "loading" }
+  | { status: "error" }
+  | {
+      status: "ready";
+      session: Session;
+      messages: Message[];
+      activity: ActivityPayload | null;
+      progress: Progress;
+      typing: boolean;
+    };
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const [state, setState] = useState<ChatState>({ status: "loading" });
 
-  async function handleSend(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = text.trim();
-    if (!trimmed || sending) {
-      return;
-    }
+  const applySession = useCallback((data: GetSessionResponse) => {
+    setState({
+      status: "ready",
+      session: data.session,
+      messages: data.messages,
+      activity: data.activity,
+      progress: data.progress,
+      typing: false,
+    });
+  }, []);
 
-    setMessages((current) => [...current, { role: "child", content: trimmed }]);
-    setText("");
-    setSending(true);
-    setError(null);
+  const handleFailure = useCallback(
+    (error: unknown) => {
+      if (error instanceof ApiError && error.status === 401) {
+        clearToken();
+        router.replace("/start");
+        return;
+      }
+      setState({ status: "error" });
+    },
+    [router],
+  );
 
-    try {
-      const data = await apiMutate<SliceTurnResponse>(
-        "POST",
-        "/v1/chat/turns",
-        { text: trimmed },
-      );
-      const replies: ChatMessage[] = data.messages.map((message) => ({
-        role: "bot",
-        content: message.content,
-      }));
-      setMessages((current) => [...current, ...replies]);
-    } catch {
-      setError("I could not hear that. Please try again.");
-    } finally {
-      setSending(false);
-    }
+  useEffect(() => {
+    let cancelled = false;
+    getSession()
+      .then((data) => {
+        if (!cancelled) {
+          applySession(data);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          handleFailure(error);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [applySession, handleFailure]);
+
+  const retry = useCallback(() => {
+    setState({ status: "loading" });
+    getSession().then(applySession).catch(handleFailure);
+  }, [applySession, handleFailure]);
+
+  if (state.status === "loading") {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-6">
+        <LoadingGarden />
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-6">
+        <DataLoadFailed onRetry={retry} />
+      </div>
+    );
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-semibold">Chat with Bloom</h1>
-
-      <ul className="flex flex-1 flex-col gap-2" aria-live="polite">
-        {messages.map((message, index) => (
-          <li
-            key={index}
-            className={
-              message.role === "child"
-                ? "self-end rounded-2xl bg-sky-100 px-4 py-2"
-                : "self-start rounded-2xl bg-emerald-100 px-4 py-2"
-            }
-          >
-            {message.content}
-          </li>
-        ))}
-      </ul>
-
-      {error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {error}
-        </p>
-      ) : null}
-
-      <form onSubmit={handleSend} className="flex gap-2">
-        <label htmlFor="chat-input" className="sr-only">
-          Your message
-        </label>
-        <input
-          id="chat-input"
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          maxLength={200}
-          autoComplete="off"
-          placeholder="Type a message"
-          className="flex-1 rounded-xl border px-4 py-3"
-        />
-        <button
-          type="submit"
-          disabled={sending || text.trim().length === 0}
-          className="min-h-11 rounded-xl bg-emerald-600 px-5 py-3 text-white disabled:opacity-50"
-        >
-          {sending ? "Sending" : "Send"}
-        </button>
-      </form>
+    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-1 flex-col px-4 py-4">
+      <h1 className="rounded-2xl border border-border bg-card px-4 py-3 text-center font-heading text-lg font-bold text-foreground">
+        Chat with Bloom
+        {state.session.nickname ? ` — hi, ${state.session.nickname}!` : ""}
+      </h1>
+      <MessageList messages={state.messages} typing={state.typing} />
     </div>
   );
 }
