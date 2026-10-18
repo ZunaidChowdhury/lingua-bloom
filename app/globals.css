@@ -172,19 +172,19 @@
   --mode-accent: #c8b9f2;
   --mode-accent-foreground: #20332b;
 }
-.dark[data-mode="learning"] {
+.dark [data-mode="learning"] {
   --mode-accent: #75d6a8;
   --mode-accent-foreground: #101a17;
 }
-.dark[data-mode="conversation"] {
+.dark [data-mode="conversation"] {
   --mode-accent: #82c9f0;
   --mode-accent-foreground: #101a17;
 }
-.dark[data-mode="engagement"] {
+.dark [data-mode="engagement"] {
   --mode-accent: #f4cf68;
   --mode-accent-foreground: #101a17;
 }
-.dark[data-mode="support"] {
+.dark [data-mode="support"] {
   --mode-accent: #b9a6f5;
   --mode-accent-foreground: #101a17;
 }
@@ -202,15 +202,15 @@
   --level-accent: #c8b9f2;
   --level-accent-foreground: #20332b;
 }
-.dark[data-level="L1"] {
+.dark [data-level="L1"] {
   --level-accent: #203f35;
   --level-accent-foreground: #f1f7f2;
 }
-.dark[data-level="L2"] {
+.dark [data-level="L2"] {
   --level-accent: #82c9f0;
   --level-accent-foreground: #101a17;
 }
-.dark[data-level="L3"] {
+.dark [data-level="L3"] {
   --level-accent: #b9a6f5;
   --level-accent-foreground: #101a17;
 }

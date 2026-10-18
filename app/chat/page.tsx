@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { ChoiceGrid } from "@/components/chat/ChoiceGrid";
 import { Composer } from "@/components/chat/Composer";
+import { LevelBadge } from "@/components/chat/LevelBadge";
 import { MessageList } from "@/components/chat/MessageList";
+import { ModeChip } from "@/components/chat/ModeChip";
+import { ProgressPlant } from "@/components/chat/ProgressPlant";
 import { DataLoadFailed } from "@/components/feedback/DataLoadFailed";
 import { LoadingGarden } from "@/components/feedback/LoadingGarden";
 import { getSession } from "@/lib/api/getSession";
@@ -16,6 +19,7 @@ import type {
   ActivityPayload,
   GetSessionResponse,
   Message,
+  Mode,
   Progress,
   Session,
   TurnInput,
@@ -31,8 +35,19 @@ type ChatState =
       messages: Message[];
       activity: ActivityPayload | null;
       progress: Progress;
+      mode: Mode | null;
       typing: boolean;
     };
+
+function lastMode(messages: Message[]): Mode | null {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const mode = messages[index].mode;
+    if (mode !== null) {
+      return mode;
+    }
+  }
+  return null;
+}
 
 function activityChoices(
   activity: ActivityPayload | null,
@@ -67,6 +82,7 @@ export default function ChatPage() {
       messages: data.messages,
       activity: data.activity,
       progress: data.progress,
+      mode: lastMode(data.messages),
       typing: false,
     });
   }, []);
@@ -125,6 +141,7 @@ export default function ChatPage() {
             messages: [...current.messages, ...response.messages],
             activity: response.activity,
             progress: response.progress,
+            mode: response.mode,
             typing: false,
           };
         });
@@ -178,10 +195,15 @@ export default function ChatPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-1 flex-col px-4 py-4">
-      <h1 className="rounded-2xl border border-border bg-card px-4 py-3 text-center font-heading text-lg font-bold text-foreground">
-        Chat with Bloom
-        {state.session.nickname ? ` — hi, ${state.session.nickname}!` : ""}
-      </h1>
+      <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
+        <h1 className="font-heading text-lg font-bold text-foreground">
+          Chat with Bloom
+          {state.session.nickname ? ` — hi, ${state.session.nickname}!` : ""}
+        </h1>
+        {state.mode ? <ModeChip mode={state.mode} /> : null}
+        <LevelBadge level={state.progress.level} />
+        <ProgressPlant progress={state.progress} />
+      </div>
       <MessageList messages={state.messages} typing={state.typing} />
       {choices && choices.length > 0 ? (
         <div className="border-t border-border py-3">
