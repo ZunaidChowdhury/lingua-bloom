@@ -1,14 +1,8 @@
 import { apiMutate } from "@/lib/core/api-client";
+import type { CreateSessionInput, CreateSessionResponse } from "@/lib/types";
 
-export type CreateSessionInput = {
-  nickname: string;
-  avatar: string;
-};
-
-export type CreateSessionResult = {
-  token: string;
-};
-
-export function createSession(input: CreateSessionInput): Promise<CreateSessionResult> {
-  return apiMutate<CreateSessionResult>("POST", "/v1/sessions", input);
+export function createSession(
+  input: CreateSessionInput,
+): Promise<CreateSessionResponse> {
+  return apiMutate<CreateSessionResponse>("POST", "/v1/sessions", input);
 }
