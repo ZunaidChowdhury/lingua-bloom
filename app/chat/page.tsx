@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { ChoiceGrid } from "@/components/chat/ChoiceGrid";
@@ -165,16 +166,25 @@ export default function ChatPage() {
   return (
     <div className="mx-auto flex h-[calc(100dvh-4.5rem)] w-full max-w-xl flex-1 flex-col overflow-hidden px-4 py-4">
       <div
-        className={`flex flex-wrap items-center justify-center gap-2 rounded-2xl border px-4 py-3 ${
+        className={`flex flex-wrap items-center justify-center gap-2.5 rounded-3xl border-2 px-4 py-3 shadow-xs ${
           state.mode === "support"
             ? "border-lavender bg-lavender/30"
-            : "border-border bg-card"
+            : "border-border/80 bg-card"
         }`}
       >
-        <h1 className="font-heading text-lg font-bold text-foreground">
-          Chat with Bloom
-          {session?.nickname ? ` — hi, ${session.nickname}!` : ""}
-        </h1>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/lingua-bloom-bot.png"
+            alt="Bloom"
+            width={34}
+            height={34}
+            className="size-8.5 rounded-full object-cover shadow-xs"
+          />
+          <h1 className="font-heading text-lg font-bold text-foreground">
+            Chat with Bloom
+            {session?.nickname ? ` — hi, ${session.nickname}!` : ""}
+          </h1>
+        </div>
         {state.mode ? <ModeChip mode={state.mode} /> : null}
         <LevelBadge level={state.progress.level} />
         <ProgressPlant progress={state.progress} />
@@ -190,7 +200,19 @@ export default function ChatPage() {
       <MessageList messages={state.messages} typing={pending} />
 
       {choices && choices.length > 0 ? (
-        <div className="border-t border-border py-3">
+        <div className="border-t-2 border-border/70 py-3.5">
+          {state.activity && state.activity.type !== "feeling_checkin" ? (
+            <div className="mb-3 rounded-2xl border border-primary/20 bg-secondary/50 p-3 text-center shadow-2xs">
+              <p className="font-heading text-lg font-bold text-foreground">
+                {state.activity.emoji ? (
+                  <span aria-hidden="true" className="mr-2 text-2xl align-middle">
+                    {state.activity.emoji}
+                  </span>
+                ) : null}
+                {state.activity.prompt}
+              </p>
+            </div>
+          ) : null}
           <ChoiceGrid
             choices={choices}
             onSelect={handleChoice}

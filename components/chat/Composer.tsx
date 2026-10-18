@@ -28,7 +28,7 @@ export function Composer({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-1 border-t border-border bg-background pt-3 pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+      className="flex flex-col gap-1 border-t-2 border-border/70 bg-background/95 pt-3 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur-xs"
     >
       <div className="flex items-center gap-2">
         <label htmlFor="chat-input" className="sr-only">
@@ -42,20 +42,27 @@ export function Composer({
           maxLength={MAX_LENGTH}
           autoComplete="off"
           enterKeyHint="send"
-          placeholder="Say something…"
-          className="min-h-12 flex-1 rounded-xl border border-border bg-card px-4 text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          placeholder="Talk to Bloom (e.g. 'hello', 'lets learn')…"
+          className="min-h-14 flex-1 rounded-full border-2 border-border/80 bg-card px-5 text-base font-medium text-foreground placeholder:text-muted-foreground shadow-xs focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
         <button
           type="submit"
           disabled={pending || trimmed.length === 0}
-          className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary px-5 font-heading font-bold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="inline-flex min-h-14 items-center justify-center gap-1.5 rounded-full bg-primary px-6 font-heading font-bold text-primary-foreground shadow-md transition-all hover:scale-102 hover:shadow-lg active:scale-95 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:hover:scale-100"
         >
-          {pending ? "…" : "Send"}
+          {pending ? (
+            <span>…</span>
+          ) : (
+            <>
+              <span>Send</span>
+              <span aria-hidden="true">🌱</span>
+            </>
+          )}
         </button>
       </div>
       <p
         aria-hidden="true"
-        className="self-end text-xs text-muted-foreground"
+        className="self-end pr-2 text-xs text-muted-foreground"
       >
         {value.length}/{MAX_LENGTH}
       </p>

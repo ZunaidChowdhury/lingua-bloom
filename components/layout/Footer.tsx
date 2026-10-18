@@ -11,14 +11,17 @@ export function Footer() {
   }
 
   return (
-    <footer className="border-t border-border bg-background">
-      <div className="mx-auto w-full max-w-5xl px-4 py-4">
+    <footer className="border-t border-border/80 bg-background/60 py-6">
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 px-4 text-center sm:flex-row sm:text-left">
+        <p className="text-xs text-muted-foreground">
+          LinguaBloom — Little words. Big worlds. 🌸 Made with care for young learners.
+        </p>
         <nav aria-label="Footer">
           <ul className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <li>
               <Link
                 href="/grown-ups"
-                className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 For grown-ups
               </Link>

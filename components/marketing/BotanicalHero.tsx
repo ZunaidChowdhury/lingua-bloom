@@ -1,31 +1,45 @@
+import Image from "next/image";
+
 export function BotanicalHero({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 320 200"
-      className={className}
-      role="img"
-      aria-label="A friendly sprout growing in a garden under a bright sun"
-      focusable="false"
-    >
-      <circle cx="160" cy="100" r="96" className="fill-mint" />
-      <circle cx="248" cy="44" r="24" className="fill-sun" />
-      <path
-        d="M160 150V70"
-        strokeWidth="8"
-        strokeLinecap="round"
-        className="stroke-primary"
-        fill="none"
-      />
-      <path d="M160 110c-28 0-48-16-48-40 28-4 48 12 48 40z" className="fill-primary" />
-      <path d="M160 92c28 0 48-16 48-40-28-4-48 12-48 40z" className="fill-primary" />
-      <circle cx="160" cy="62" r="16" className="fill-lavender" />
-      <circle cx="160" cy="62" r="7" className="fill-sun" />
-      <path
-        d="M110 168h100l-10 20a8 8 0 0 1-7 4h-66a8 8 0 0 1-7-4z"
-        className="fill-lavender"
-      />
-      <ellipse cx="80" cy="176" rx="26" ry="10" className="fill-sky" />
-      <ellipse cx="244" cy="178" rx="22" ry="8" className="fill-sky" />
-    </svg>
+    <div className={`relative flex items-center justify-center ${className ?? ""}`}>
+      <div className="relative">
+        {/* Soft glowing aura */}
+        <div
+          aria-hidden="true"
+          className="bloom-ring absolute -inset-6 rounded-full bg-gradient-to-tr from-mint/70 via-sun/30 to-sky/50 blur-2xl dark:from-mint/20 dark:to-sky/20"
+        />
+
+        {/* Floating playful badge 1 (top right) */}
+        <div
+          aria-hidden="true"
+          className="bloom-sparkle-1 absolute -top-4 -right-4 z-20 hidden items-center gap-1.5 rounded-full border border-sun/50 bg-card/95 px-3 py-1 text-xs font-bold text-amber-900 shadow-md backdrop-blur-xs sm:flex dark:text-sun"
+        >
+          <span>✨</span>
+          <span>Ages 3–7</span>
+        </div>
+
+        {/* Floating playful badge 2 (bottom left) */}
+        <div
+          aria-hidden="true"
+          className="bloom-sparkle-2 absolute -bottom-3 -left-6 z-20 hidden items-center gap-1.5 rounded-full border border-mint bg-card/95 px-3 py-1 text-xs font-bold text-primary shadow-md backdrop-blur-xs sm:flex"
+        >
+          <span>🌱</span>
+          <span>Little words</span>
+        </div>
+
+        {/* Mascot Bot Card */}
+        <div className="bloom-float relative z-10 rounded-3xl bg-card/90 p-4 shadow-xl ring-4 ring-mint/50 dark:ring-mint/20">
+          <Image
+            src="/lingua-bloom-bot.png"
+            alt="LinguaBloom botanical robot friend"
+            width={260}
+            height={260}
+            priority
+            className="size-48 sm:size-60 rounded-2xl object-contain drop-shadow-sm transition-transform hover:scale-105 motion-reduce:hover:scale-100"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
